@@ -147,6 +147,9 @@ Samsung-Regret-Intelligence-System/
 │   ├── 04_mining.ipynb                     # Non-circular temporal ML, clustering, association rules
 │   ├── 05_analysis.ipynb                   # Temporal trends, rolling RSI, product risk scorecard
 │   └── 06_satisfaction_analysis.ipynb      # Positive drivers & customer satisfaction
+├── scripts/                                # Analytical automation & export scripts
+│   ├── export_powerbi_data.py              # Export star schema & temporal metrics to Power BI CSVs
+│   └── generate_powerbi_visuals.py         # 5-page high-resolution dashboard render engine
 ├── outputs/
 │   ├── powerbi/                            # Power BI export datasets & dashboard assets
 │   │   ├── POWER_BI_DASHBOARD_GUIDE.md     # DAX measures, relationship map, visual blueprint
