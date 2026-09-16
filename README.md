@@ -173,6 +173,7 @@ Samsung-Regret-Intelligence-System/
 │   ├── processed/                          # Processed dataset with NLP & RSI
 │   └── warehouse/                          # Fact and dimension CSV tables
 ├── requirements.txt
+├── LICENSE
 └── README.md
 ```
 
