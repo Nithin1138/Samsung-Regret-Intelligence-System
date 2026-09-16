@@ -1,6 +1,11 @@
 # Samsung Regret Intelligence System
 
-An end-to-end data warehousing, NLP, and predictive intelligence system that converts unstructured multi-platform e-commerce customer reviews into actionable product risk metrics for Samsung consumer electronics.
+[![Python](https://img.shields.io/badge/Python-3.9%20%7C%203.10%20%7C%203.14-blue.svg)](https://www.python.org/)
+[![Power BI](https://img.shields.io/badge/Power_BI-Dashboard_Ready-F2C811.svg)](outputs/powerbi/)
+[![Data Warehouse](https://img.shields.io/badge/Schema-Star_Schema_OLAP-success.svg)](data/warehouse/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+
+An enterprise data warehousing, NLP, predictive intelligence, and business analytics system that converts unstructured multi-platform e-commerce customer reviews into actionable product risk metrics for Samsung consumer electronics.
 
 ---
 
@@ -8,199 +13,242 @@ An end-to-end data warehousing, NLP, and predictive intelligence system that con
 
 Standard sentiment analysis and raw star ratings often fail to capture genuine consumer remorse:
 * A **3-star review** may conceal a critical hardware defect (e.g., display flickering or battery degradation).
-* A **1-star review** may reflect an isolated logistics issue rather than a product defect.
+* A **1-star review** may reflect an isolated logistics or delivery issue rather than a defect in the product itself.
 
-This project implements a **Star Schema Data Warehouse** and engineers a domain-specific metric called the **Regret Severity Index (RSI)** alongside a **Temporal Risk Scoring Engine**. The pipeline processes **7,494 multi-platform customer reviews** across **50 product lines**, enabling proactive defect detection and product risk prioritization.
-
----
-
-## 🏗️ 2. System Architecture
-
-```
-                Samsung Reviews (11,000 raw)
-                         │
-                         ▼
-              ┌─────────────────────┐
-              │  Data Quality       │
-              │  Validation         │
-              │  (Duplicates, NaN,  │
-              │   Invalid Ratings)  │
-              └────────┬────────────┘
-                       │
-                       ▼
-              ┌─────────────────────┐
-              │  ETL Pipeline       │
-              │  • Text Cleaning    │
-              │  • VADER Sentiment  │
-              │  • Issue Extraction │
-              │  • RSI Calculation  │
-              └────────┬────────────┘
-                       │
-          ┌────────────┴────────────┐
-          ▼                         ▼
-   ┌──────────────┐        ┌──────────────────┐
-   │ Star Schema  │        │ Data Mining       │
-   │ Warehouse    │        │ • Temporal Risk   │
-   │ • fact_review│        │   Prediction      │
-   │ • dim_product│        │ • KMeans Clusters │
-   │ • dim_date   │        │ • Apriori Rules   │
-   │ • dim_issue  │        │ • IsolationForest │
-   │ • dim_platfrm│        └────────┬──────────┘
-   └──────┬───────┘                 │
-          │                         │
-          ▼                         ▼
-   ┌──────────────┐        ┌──────────────────┐
-   │ OLAP & SQL   │        │ Temporal          │
-   │ Analytics    │        │ Intelligence      │
-   │ • Roll-up    │        │ • Monthly RSI     │
-   │ • Drill-down │        │ • Rolling 3-month │
-   │ • Slice/Dice │        │ • Trend Slopes    │
-   │ • Window Fns │        │ • Risk Accel.     │
-   └──────┬───────┘        └────────┬──────────┘
-          │                         │
-          └────────────┬────────────┘
-                       ▼
-              ┌─────────────────────┐
-              │  Product Risk       │
-              │  Scorecard          │
-              │  Dynamic Tiering    │
-              │  (Critical/High/    │
-              │   Moderate/Low)     │
-              └─────────────────────┘
-```
+The **Samsung Regret Intelligence System** implements a **Star Schema Data Warehouse**, engineers a domain-specific metric called the **Regret Severity Index (RSI)**, and features a **Temporal Risk Scoring Engine** coupled with a **Power BI Executive Dashboard**. The system processes **7,236 multi-platform customer reviews** across **50 product lines**, enabling proactive defect detection and product risk prioritization.
 
 ---
 
-## 📂 3. Project Structure
+## 🔄 2. End-to-End System Pipeline
+
+```
+┌─────────────┐
+│ 11,000 Raw  │
+│   Reviews   │
+└──────┬──────┘
+       │
+       ▼
+┌──────────────────────────────────────┐
+│  Data Quality Validation Engine      │
+│  • Duplicates removal (3,206 dupes)  │
+│  • Missing review / product removal  │
+│  • Rating bounds check (1 to 5)      │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│  ETL & Natural Language Processing   │
+│  • Text Regex Normalization          │
+│  • NLTK VADER Compound Polarity      │
+│  • Sentence-Level Aspect Extraction  │
+│    (Battery → Neg, Camera → Pos)     │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│  Regret Severity Index (RSI) Engine  │
+│  • Normalized Rating Penalty (35%)   │
+│  • Inverted Negative Polarity (35%)  │
+│  • Hardware Defect Penalty (15%)     │
+│  • Review Text Specificity (15%)     │
+└──────────────────┬───────────────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│  Dimensional Data Warehouse          │
+│  • Star Schema: fact_review          │
+│  • Dimensions: product, date,        │
+│    platform, issue                   │
+│  • 6 Analytical SQL OLAP Queries     │
+└──────────────────┬───────────────────┘
+                   │
+         ┌─────────┴─────────┐
+         ▼                   ▼
+┌─────────────────┐ ┌──────────────────┐
+│ Predictive      │ │ Temporal         │
+│ Data Mining     │ │ Intelligence     │
+│ • Non-Circular  │ │ • Monthly RSI    │
+│   Temporal Risk │ │ • 3-Mo Rolling   │
+│   Predictor     │ │ • Trend Slopes   │
+│ • KMeans (k=3)  │ │   (OLS linreg)   │
+│ • Apriori Rules │ │ • Risk           │
+│ • IsolationFrst │ │   Acceleration   │
+└────────┬────────┘ └────────┬─────────┘
+         │                   │
+         └─────────┬─────────┘
+                   │
+                   ▼
+┌──────────────────────────────────────┐
+│  Power BI Executive Dashboard        │
+│  1. Overview & Core KPIs             │
+│  2. Product Risk Prioritization      │
+│  3. Temporal Trends & Acceleration   │
+│  4. Defect Taxonomy & Aspects        │
+│  5. Retail Platform Parity           │
+└──────────────────────────────────────┘
+```
+
+---
+
+## 🏗️ 3. Data Warehouse Architecture (Star Schema)
+
+The dimensional model deconstructs denormalized customer reviews into a central fact table and 4 dimension tables optimized for OLAP aggregations and Power BI reporting:
+
+```
+                  ┌──────────────────────┐
+                  │      dim_date        │
+                  │  Date_ID (PK)        │
+                  │  Year, Month, Quarter│
+                  │  DayOfWeek           │
+                  └──────────┬───────────┘
+                             │ 1
+                             │
+                             │ *
+┌──────────────────────┐   ┌─┴────────────────────┐   ┌──────────────────────┐
+│     dim_product      │   │     fact_review      │   │     dim_platform     │
+│  Product_ID (PK)     ├───┤  Review_ID (PK)      ├───┤  Platform_ID (PK)    │
+│  Product_Name        │ 1 │  Product_ID (FK)     │ 1 │  Platform_Name       │
+│  Category            │ * │  Platform_ID (FK)    │ * └──────────────────────┘
+└──────────────────────┘   │  Issue_ID (FK)       │
+                           │  Date_ID (FK)        │
+                           │  Rating, Sent, RSI   │
+                           └─┬────────────────────┘
+                             │ *
+                             │
+                             │ 1
+                  ┌──────────┴───────────┐
+                  │      dim_issue       │
+                  │  Issue_ID (PK)       │
+                  │  Issue_Type          │
+                  └──────────────────────┘
+```
+
+---
+
+## 📂 4. Project Structure
 
 ```
 Samsung-Regret-Intelligence-System/
-├── src/                                    # Reusable Python modules
-│   ├── __init__.py
-│   ├── data_quality.py                     # Raw data validation & quality report
-│   ├── preprocessing.py                    # Text cleaning, deduplication, rating fix
-│   ├── sentiment.py                        # VADER sentiment scoring & classification
-│   ├── issue_extraction.py                 # Rule-based keyword issue categorization
-│   ├── rsi.py                              # RSI computation, monthly/rolling/trend/accel.
-│   ├── etl.py                              # Full ETL pipeline orchestrator
-│   ├── warehouse.py                        # Star schema builder & SQL-style queries
-│   ├── mining.py                           # KMeans, Apriori, IsolationForest, temporal predictor
-│   └── risk_analysis.py                    # Risk scorecard, trend-based scoring, worsening detection
-├── data/
-│   ├── raw/
-│   │   ├── samsung_dirty_dataset.csv       # Raw uncleaned reviews (11,000 rows)
-│   │   └── samsung_clean_dataset.csv       # Deduplicated reviews (7,494 rows)
-│   ├── processed/
-│   │   └── samsung_processed_dataset.csv   # Feature-engineered dataset with NLP & RSI
-│   └── warehouse/
-│       ├── fact_review.csv                 # Central fact table with surrogate keys
-│       ├── dim_product.csv                 # Product dimension (50 products)
-│       ├── dim_platform.csv                # Platform dimension (Amazon, Flipkart)
-│       ├── dim_issue.csv                   # Issue dimension (11 categories)
-│       └── dim_date.csv                    # Date dimension (Year, Month, Day, Quarter)
-├── notebooks/
-│   ├── 01_data_generation.ipynb            # Raw data ingestion & cleaning
-│   ├── 02_etl_pipeline.ipynb               # Data quality → Sentiment → Issues → RSI
-│   ├── 03_warehouse.ipynb                  # Star Schema + SQL-style analytics
-│   ├── 04_mining.ipynb                     # Temporal prediction, clustering, rules, outliers
-│   ├── 05_analysis.ipynb                   # Temporal intelligence, OLAP, risk scorecard
-│   └── 06_satisfaction_analysis.ipynb      # Positive sentiment & satisfaction analysis
+├── src/                                    # Production-grade Python modules
+│   ├── __init__.py                         # Package entrypoint
+│   ├── data_quality.py                     # Data validation & quality scorecard
+│   ├── preprocessing.py                    # Text cleaning, deduplication, rating validation
+│   ├── sentiment.py                        # NLTK VADER sentiment scoring & classification
+│   ├── issue_extraction.py                 # Keyword categorization & sentence-level aspect extraction
+│   ├── rsi.py                              # RSI computation, monthly/rolling/trend slope/acceleration
+│   ├── etl.py                              # End-to-end pipeline orchestrator
+│   ├── warehouse.py                        # Star schema builder & 6 SQL-style analytical queries
+│   ├── mining.py                           # Temporal predictor, KMeans, Apriori, IsolationForest
+│   └── risk_analysis.py                    # Multi-factor risk scorecard & worsening detection
+├── notebooks/                              # Self-contained Jupyter Notebooks
+│   ├── 01_data_generation.ipynb            # Raw data ingestion & text normalization
+│   ├── 02_etl_pipeline.ipynb               # Quality checks → VADER → Aspects → RSI
+│   ├── 03_warehouse.ipynb                  # Star Schema dimensional modeling & SQL analytics
+│   ├── 04_mining.ipynb                     # Non-circular temporal ML, clustering, association rules
+│   ├── 05_analysis.ipynb                   # Temporal trends, rolling RSI, product risk scorecard
+│   └── 06_satisfaction_analysis.ipynb      # Positive drivers & customer satisfaction
 ├── outputs/
-│   ├── models/                             # Serialized ML models (.pkl)
-│   └── plots/                              # Generated visualizations (.png)
+│   ├── powerbi/                            # Power BI export datasets & dashboard assets
+│   │   ├── POWER_BI_DASHBOARD_GUIDE.md     # DAX measures, relationship map, visual blueprint
+│   │   ├── powerbi_fact_reviews.csv        # Fact table for Power BI import
+│   │   ├── powerbi_dim_product.csv         # Product dimension table
+│   │   ├── powerbi_dim_date.csv            # Date dimension table
+│   │   ├── powerbi_dim_platform.csv        # Platform dimension table
+│   │   ├── powerbi_dim_issue.csv           # Issue dimension table
+│   │   ├── powerbi_product_risk_summary.csv# Pre-aggregated product scorecard
+│   │   ├── powerbi_temporal_trends.csv     # Monthly & rolling temporal metrics
+│   │   ├── powerbi_aspect_sentiments.csv   # Sentence-level aspect sentiment occurrences
+│   │   ├── page1_overview.png              # Rendered Dashboard Page 1: Overview
+│   │   ├── page2_product_risk.png          # Rendered Dashboard Page 2: Product Risk
+│   │   ├── page3_temporal_intelligence.png # Rendered Dashboard Page 3: Temporal Trends
+│   │   ├── page4_issue_analysis.png        # Rendered Dashboard Page 4: Defect Taxonomy
+│   │   └── page5_platform_analysis.png     # Rendered Dashboard Page 5: Platform Parity
+│   ├── models/                             # Trained model checkpoints (.pkl)
+│   └── plots/                              # Analytical visualizations (.png)
+├── data/
+│   ├── raw/                                # Dirty & Clean raw review CSVs
+│   ├── processed/                          # Processed dataset with NLP & RSI
+│   └── warehouse/                          # Fact and dimension CSV tables
 ├── requirements.txt
 └── README.md
 ```
 
 ---
 
-## 🔬 4. Core Methodologies
+## 🔬 5. Core Methodologies
 
-### A. Regret Severity Index (RSI)
+### A. Regret Severity Index (RSI) Formula
+Standard star ratings alone hide customer dissatisfaction. RSI computes true remorse by balancing four signals:
 
-RSI balances textual polarity, numerical rating deviation, defect presence, and text specificity into a normalized continuous score from `0.0` (low regret) to `1.0` (high regret):
+$$\text{RSI}_i = 0.35 \cdot \left(\frac{5 - \text{Rating}_i}{4}\right) + 0.35 \cdot \left(\frac{1 - \text{Compound}_i}{2}\right) + 0.15 \cdot \text{IssueSeverity}_i + 0.15 \cdot \text{Specificity}_i$$
 
+* **Rating Penalty (35%)**: Divergence from a 5-star rating ($0.0 \rightarrow 1.0$).
+* **Sentiment Remorse (35%)**: Inverts VADER compound score into normalized dissatisfaction ($0.0 \rightarrow 1.0$).
+* **Hardware Defect Penalty (15%)**: Weighted flag when high-impact defects (display, battery) are tagged.
+* **Review Specificity (15%)**: Weight proportional to detail depth.
+
+### B. Rule-Based Sentence-Level Aspect Extraction (Priority 7)
+Rather than tagging an entire review with a single label, the NLP engine breaks text into clauses across contrastive conjunctions (`but`, `however`, `although`) and evaluates sentiment per component:
+
+```text
+Input:  "Battery drains quickly but the camera is excellent."
+Output: 
+  • Aspect: Battery → Sentiment: Negative (Compound: -0.35)
+  • Aspect: Camera  → Sentiment: Positive (Compound: +0.57)
 ```
-RSI = (0.4 × Negative_Sentiment) + (0.3 × Rating_Deviation) + (0.2 × Keyword_Intensity) + (0.1 × Specificity)
-```
+Over **1,884 aspect-sentiment pairs** were extracted and exported to `outputs/powerbi/powerbi_aspect_sentiments.csv`.
 
-Where:
-* **`Negative_Sentiment`** = max(0, -SentimentCompoundScore): Isolates pure negative polarity from VADER compound scores (0.0 → 1.0).
-* **`Rating_Deviation`** = |5 - Rating| / 4: Measures divergence from a 5-star rating (0.0 → 1.0).
-* **`Keyword_Intensity`**: Binary flag (1 if a hardware/software issue keyword is detected, 0 if none).
-* **`Specificity`**: Calibrated constant weight (0.6) reflecting review descriptive granularity.
+### C. Non-Circular Temporal Risk Predictor (Priority 1)
+* **The Flaw in Prior Work**: `Rating + Sentiment → RSI → High_Risk → LogReg(Rating, Sentiment)` caused circular data leakage.
+* **The Solution**: Historical quarterly features (`previous_avg_rsi`, `neg_ratio`, `issue_density`, `review_volume`, `avg_rating`) predict whether a product's RSI will cross into high risk ($> 0.5$) in the **subsequent quarter**.
+* **Split Strategy**: Chronological time-split (Train: Q1 2022–Q1 2024; Test: Q2–Q4 2024) with balanced class weights.
 
-### B. Composite Product Risk Score (Trend-Based)
-
-Products are scored using **trend-based growth** (linear regression slope) rather than simple endpoint comparison:
-
-```
-Risk_Score = (0.35 × Avg_RSI_norm) + (0.25 × RSI_Slope_norm) + (0.20 × Issue_Density_norm)
-           + (0.10 × Neg_Ratio_norm) + (0.10 × Risk_Acceleration_norm)
-```
-
-Where:
-* **`RSI_Slope`**: Linear regression slope of monthly RSI — captures sustained worsening/improving trend.
-* **`Risk_Acceleration`**: Second derivative (slope of slope) — identifies whether risk is accelerating or decelerating.
-* All components are min-max normalized to [0, 1] before weighting.
-
-### C. Dynamic Risk Tiering
-
-Products are classified into tiers based on interquartile score distributions (Q1, Q2, Q3):
-* **Low Risk:** Risk Score ≤ Q1
-* **Moderate Risk:** Q1 < Risk Score ≤ Q2
-* **High Risk:** Q2 < Risk Score ≤ Q3
-* **Critical Risk:** Risk Score > Q3
+### D. Longitudinal Temporal Trajectory (Priority 2 & 3)
+Replaces arbitrary endpoint deltas ($RSI_{last} - RSI_{first}$) with:
+* **Monthly RSI Time-Series**: Base longitudinal monitoring.
+* **3-Month Rolling Average**: Noise dampening across seasonal sale spikes.
+* **OLS Linear Regression Slope ($m$)**: Mathematical trajectory velocity ($y = mx + c$).
+* **Risk Acceleration**: Second derivative ($\Delta$ slope) identifying accelerating customer remorse.
+* **Consistent Worsening Detection**: Flags products exhibiting 3+ consecutive months of rising RSI.
 
 ---
 
-## ⚙️ 5. Machine Learning & Analytical Modules
+## 📊 6. Power BI Dashboard Suite (Priority 8)
 
-| Module | Technique | Details | Key Result |
-| :--- | :--- | :--- | :--- |
-| **Temporal Risk Prediction** | Logistic Regression (balanced) | Predicts **next-quarter** high risk from current-quarter features (avg RSI, neg ratio, issue density, avg rating, avg sentiment, review count). Time-based train/test split. | Correctly identifies at-risk products using non-circular features |
-| **Unsupervised Clustering** | K-Means (k=3) | Segments customer reviews into Low/Medium/High risk bands based on RSI | 3 distinct risk clusters with clear separation |
-| **Association Mining** | Apriori Algorithm | Mines co-occurrence patterns across Issue × Risk × Platform (min_support=0.01, min_confidence=0.3) | Multi-feature rules discovered linking issue types to risk levels |
-| **Anomaly Detection** | Isolation Forest | Identifies extreme sentiment-rating discrepancies | 5% contamination rate |
-| **OLAP Operations** | Multi-Index Aggregations | Roll-Up, Drill-Down, Slice, Dice across Category, Time, Platform, Product | Complete dimensional analysis |
-| **SQL-Style Analytics** | Pandas (SQL equivalents) | RANK, LAG, running SUM window functions; CTEs via method chaining; HAVING/subquery patterns | 6 analytical queries with documented SQL equivalents |
+The system includes a dedicated 5-page Power BI dashboard suite documented in [`POWER_BI_DASHBOARD_GUIDE.md`](outputs/powerbi/POWER_BI_DASHBOARD_GUIDE.md):
 
-### Temporal Intelligence Metrics
-
-| Metric | Method | Purpose |
+| Page | Key Visualizations | Purpose |
 | :--- | :--- | :--- |
-| Monthly RSI | groupby(Product, Month).RSI.mean() | Base time series per product |
-| 3-Month Rolling RSI | rolling(3).mean() | Smoothed trend |
-| RSI Trend Slope | scipy.stats.linregress | Direction & velocity of change |
-| Review Volume Trend | linregress on monthly counts | Growing/shrinking attention |
-| Negative Sentiment Trend | rolling(3).mean() of neg ratio | Tone deterioration |
-| Risk Acceleration | Slope of slopes (2nd derivative) | Accelerating vs. decelerating |
-| Consistent Worsening | Consecutive increase detection | Products with N+ months of rising RSI |
+| **1. Executive Overview** | KPI Cards (Total Reviews, Avg Rating, Avg RSI, High-Risk %), Category Donut, Monthly Volume/RSI Trend | Executive high-level health monitoring |
+| **2. Product Risk Prioritization** | Top 10 Critical Products Bar Chart, RSI vs Slope Matrix Scatter, Risk Scorecard Table | Pinpoint products needing immediate hardware/software intervention |
+| **3. Temporal Intelligence** | Category 3-Mo Rolling Curves, Risk Acceleration Curve ($\Delta$ slope) | Longitudinal drift and acceleration tracking |
+| **4. Defect Taxonomy & Aspects** | Sentence-Level Aspect Sentiment Distribution (Positive vs Negative), Defect Severity Hierarchy | Granular component-level quality feedback |
+| **5. Platform Analysis** | Amazon vs Flipkart KPI Parity, Regret Severity Boxplots | Retail channel comparative quality assessment |
 
 ---
 
-## 📊 6. Key Findings
+## 📈 7. Key Findings & Insights
 
-1. **Top Critical Products:** Samsung Air Conditioner, Samsung Washing Machine, and Samsung Galaxy Buds2 exhibited the highest composite risk scores due to high issue density and worsening RSI trends.
-2. **Defect Severity Hierarchy:** Camera, General Issues, Battery, Display, and Performance are the top 5 issue categories by mean RSI.
-3. **Temporal Intelligence:** 25 products showed 3+ consecutive months of RSI increase, indicating sustained worsening trends.
-4. **Platform Parity:** Customer dissatisfaction remained consistent across Amazon and Flipkart platforms.
-5. **Predictive Features:** Negative sentiment ratio and issue density are the strongest predictors of future high risk.
-
----
-
-## 💻 7. Tech Stack
-
-* **Language:** Python 3.10+
-* **Data Processing & Warehousing:** Pandas, NumPy, Regular Expressions, Star Schema Dimensional Modeling
-* **Natural Language Processing:** NLTK (VADER Sentiment Intensity Analyzer)
-* **Machine Learning & Mining:** Scikit-learn, MLxtend, SciPy, Joblib
-* **Data Visualization:** Matplotlib, Seaborn
-* **Environment:** Jupyter Notebooks
+1. **Top Critical Products**: Samsung Buds 2, Galaxy Tab A8, and Galaxy S22 exhibited the highest risk scores driven by defect density and positive trend slopes.
+2. **Defect Severity Hierarchy**: Camera (Mean RSI: 0.573), Display (0.542), and Battery (0.538) carry the highest regret penalties.
+3. **Sentence-Level Aspects**: Battery and Software complaints exhibit the highest negative-to-positive ratio ($> 78\%$ negative mentions), while Camera and Display receive strong dual-sentiment polarity.
+4. **Platform Parity**: Amazon (Mean RSI: 0.356) and Flipkart (Mean RSI: 0.351) demonstrated statistically indistinguishable regret distributions.
+5. **Predictive Drivers**: In the temporal risk model, **Negative Review Ratio** and **Issue Density** were the two strongest leading indicators of future product risk.
 
 ---
 
-## ▶️ 8. How to Run
+## 💻 8. Tech Stack
+
+* **Language**: Python 3.9+ / 3.10+ / 3.14
+* **Data Warehousing & OLAP**: Pandas, NumPy, Star Schema Dimensional Modeling, SQL Window Analytics
+* **NLP & Text Mining**: NLTK (`SentimentIntensityAnalyzer`, VADER Lexicon), Regular Expressions
+* **Machine Learning**: Scikit-learn (LogisticRegression, KMeans, IsolationForest), MLxtend (Apriori), SciPy (linregress), Joblib
+* **Data Visualization & BI**: Matplotlib, Seaborn, Microsoft Power BI Desktop
+* **Notebook Environments**: Jupyter Notebooks, VS Code Interactive, Google Colab
+
+---
+
+## ▶️ 9. How to Run
 
 ### 1. Clone Repository & Install Dependencies
 ```bash
@@ -209,18 +257,26 @@ cd Samsung-Regret-Intelligence-System
 pip install -r requirements.txt
 ```
 
-### 2. Execute Notebook Pipeline Sequentially
-Run the notebooks in `/notebooks/` in order:
+### 2. Run Notebooks Sequentially
+Execute notebooks in `notebooks/` in chronological order:
+1. `01_data_generation.ipynb` — Dataset normalization & category standardization
+2. `02_etl_pipeline.ipynb` — Pre-validation, VADER sentiment, aspect extraction, RSI
+3. `03_warehouse.ipynb` — Star Schema data warehouse construction & SQL analytics
+4. `04_mining.ipynb` — Non-circular temporal risk model, clustering, association rules
+5. `05_analysis.ipynb` — Longitudinal temporal trends, OLS slopes, executive risk scorecard
+6. `06_satisfaction_analysis.ipynb` — Positive sentiment drivers & feature satisfaction
 
-1. `01_data_generation.ipynb` — Cleans raw data and extracts standard categories.
-2. `02_etl_pipeline.ipynb` — Data quality validation, VADER sentiment, issue extraction, RSI computation.
-3. `03_warehouse.ipynb` — Star Schema construction + SQL-style analytical queries.
-4. `04_mining.ipynb` — Temporal risk prediction, K-Means clustering, Apriori mining, Isolation Forest.
-5. `05_analysis.ipynb` — Temporal intelligence (rolling RSI, trend slopes, acceleration), OLAP operations, risk scorecard.
-6. `06_satisfaction_analysis.ipynb` — Positive sentiment drivers & satisfaction analysis.
+### 3. Generate Power BI Datasets & Visual Renders
+```bash
+# Export Star Schema CSVs and Aspect datasets for Power BI
+python3 scripts/export_powerbi_data.py
+
+# Render 5-page dashboard visualization images
+python3 scripts/generate_powerbi_visuals.py
+```
 
 ---
 
-## 📄 9. License
+## 📄 10. License
 
 This project is open-source and available under the [MIT License](LICENSE).
