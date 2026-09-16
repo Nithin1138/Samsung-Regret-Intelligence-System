@@ -101,11 +101,11 @@ def fix_ratings_column(df, rating_col="Rating", verbose=True):
 
 
 def normalize_text_columns(df):
-    """Normalize Product and Platform columns: strip + title case."""
+    """Normalize Product and Platform columns: strip + capitalized case."""
     if "Product" in df.columns:
         df["Product"] = df["Product"].astype(str).str.strip()
     if "Platform" in df.columns:
-        df["Platform"] = df["Platform"].astype(str).str.strip()
+        df["Platform"] = df["Platform"].astype(str).str.strip().str.capitalize()
     return df
 
 

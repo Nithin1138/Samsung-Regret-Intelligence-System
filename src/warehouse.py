@@ -22,7 +22,9 @@ def create_dim_product(df):
 
 def create_dim_platform(df):
     """Create the Platform dimension table."""
-    dim = df[["Platform"]].drop_duplicates().reset_index(drop=True)
+    df_copy = df.copy()
+    df_copy["Platform"] = df_copy["Platform"].astype(str).str.strip().str.capitalize()
+    dim = df_copy[["Platform"]].drop_duplicates().reset_index(drop=True)
     dim["Platform_ID"] = range(1, len(dim) + 1)
     return dim
 
@@ -60,6 +62,7 @@ def create_fact_review(df, dim_product, dim_platform, dim_issue, dim_date):
     fact = df.copy()
     fact["Date"] = pd.to_datetime(fact["Date"])
     fact["Review_ID"] = range(1, len(fact) + 1)
+    fact["Platform"] = fact["Platform"].astype(str).str.strip().str.capitalize()
 
     # Merge dimension keys
     fact = fact.merge(dim_product, on=["Product", "Category"], how="left")
