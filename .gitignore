@@ -24,3 +24,6 @@ ENV/
 # IDEs
 .vscode/
 .idea/
+
+# Local Architecture & Project Guides
+PROJECT_ARCHITECTURE_GUIDE.md
