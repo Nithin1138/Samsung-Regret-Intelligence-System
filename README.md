@@ -101,30 +101,36 @@ DWDM_Project/
 ## 🔬 4. Core Methodologies & Mathematical Formulations
 
 ### A. Regret Severity Index (RSI)
-RSI balances textual polarity, numerical rating deviation, defect presence, and text specificity into a continuous score from `0.0` (no regret) to `1.0` (maximum regret):
+RSI balances textual polarity, numerical rating deviation, defect presence, and text specificity into a normalized continuous score from `0.0` (low regret) to `1.0` (high regret):
 
-$$\text{RSI} = 0.4 \cdot \text{Neg\_Sent} + 0.3 \cdot \text{Rating\_Dev} + 0.2 \cdot \text{Keyword\_Intensity} + 0.1 \cdot \text{Specificity}$$
+```
+RSI = (0.4 × Negative_Sentiment) + (0.3 × Rating_Deviation) + (0.2 × Keyword_Intensity) + (0.1 × Specificity)
+```
 
-* **$\text{Neg\_Sent} = \max(0, -\text{Sentiment\_Score})$**: Isolates negative polarity from VADER compound scores ($0.0 \to 1.0$).
-* **$\text{Rating\_Dev} = \frac{|5 - \text{Rating}|}{4}$**: Measures divergence from a 5-star rating ($0.0 \to 1.0$).
-* **$\text{Keyword\_Intensity}$**: Binary indicator ($1$ if a hardware/software issue keyword is detected, $0$ if none).
-* **$\text{Specificity}$**: Calibrated weight ($0.6$) reflecting review descriptive granularity.
+Where:
+* **`Negative_Sentiment`** $= \max(0, -\text{SentimentCompoundScore})$: Isolates pure negative polarity from VADER compound scores ($0.0 \to 1.0$).
+* **`Rating_Deviation`** $= \frac{|5 - \text{Rating}|}{4}$: Measures divergence from a 5-star rating ($0.0 \to 1.0$).
+* **`Keyword_Intensity`**: Binary flag ($1$ if a hardware/software issue keyword is detected, $0$ if none).
+* **`Specificity`**: Calibrated constant weight ($0.6$) reflecting review descriptive granularity.
 
 ### B. Composite Product Risk Score
-Calculated per product line to prioritize systemic issues over isolated anomalies:
+Calculated per product line to prioritize systemic defect trends over isolated reviews:
 
-$$\text{Risk\_Score} = 0.5 \cdot \text{Avg\_RSI} + 0.3 \cdot \text{Growth\_Rate}_{\text{norm}} + 0.2 \cdot \text{Issue\_Density}$$
+```
+Risk_Score = (0.5 × Avg_RSI) + (0.3 × Growth_Rate) + (0.2 × Issue_Density)
+```
 
-* **$\text{Avg\_RSI}$**: Mean RSI for the product.
-* **$\text{Growth\_Rate}_{\text{norm}}$**: Min-max normalized temporal trajectory ($RSI_{\text{latest}} - RSI_{\text{earliest}}$).
-* **$\text{Issue\_Density}$**: Proportion of reviews with identified defect keywords ($\frac{N_{\text{issues}}}{N_{\text{total}}}$).
+Where:
+* **`Avg_RSI`**: Mean Regret Severity Index for the product.
+* **`Growth_Rate`**: Min-max normalized temporal trajectory ($RSI_{\text{latest}} - RSI_{\text{earliest}}$) representing defect acceleration.
+* **`Issue_Density`**: Proportion of reviews containing identified defect keywords ($\frac{N_{\text{issues}}}{N_{\text{total}}}$).
 
 ### C. Dynamic Risk Tiering
-Products are dynamically classified into tiers based on interquartile score distributions:
-* **Low Risk:** $\text{Risk\_Score} \le Q_1$ ($\le 0.269$)
-* **Moderate Risk:** $Q_1 < \text{Risk\_Score} \le Q_2$ ($0.269 - 0.283$)
-* **High Risk:** $Q_2 < \text{Risk\_Score} \le Q_3$ ($0.283 - 0.294$)
-* **Critical Risk:** $\text{Risk\_Score} > Q_3$ ($> 0.294$)
+Products are dynamically classified into tiers based on interquartile score distributions ($Q_1, Q_2, Q_3$):
+* **Low Risk:** $\text{Risk Score} \le Q_1$ ($\le 0.269$)
+* **Moderate Risk:** $Q_1 < \text{Risk Score} \le Q_2$ ($0.269 - 0.283$)
+* **High Risk:** $Q_2 < \text{Risk Score} \le Q_3$ ($0.283 - 0.294$)
+* **Critical Risk:** $\text{Risk Score} > Q_3$ ($> 0.294$)
 
 ---
 
@@ -132,7 +138,7 @@ Products are dynamically classified into tiers based on interquartile score dist
 
 | Module | Technique | Implementation Details | Verified Metric / Result |
 | :--- | :--- | :--- | :--- |
-| **Supervised Classification** | Logistic Regression | Trained on `[Rating, Sentiment_score]` to predict `High_Risk` ($\text{RSI} > 0.5$) | **91% Accuracy**, 0.86 F1-Score (High Risk), 0.93 F1-Score (Low Risk) |
+| **Supervised Classification** | Logistic Regression | Trained on `[Rating, Sentiment_score]` to predict `High_Risk` (`RSI > 0.5`) | **91% Accuracy**, 0.86 F1-Score (High Risk), 0.93 F1-Score (Low Risk) |
 | **Unsupervised Clustering** | K-Means ($k=3$) | Segmented customer remorse distribution into distinct operational bands | **Cluster 0 (High):** Mean RSI 0.624<br>**Cluster 1 (Low):** Mean RSI 0.144<br>**Cluster 2 (Medium):** Mean RSI 0.438 |
 | **Association Mining** | Apriori Algorithm | Mined multi-feature itemsets (`min_support=0.01`, `min_confidence=0.3`) | **56 Rules Discovered**<br>Top: `(Issue_general_issue, Flipkart) → High_Risk` (Conf: 85.8%, Lift: 2.59) |
 | **Anomaly Detection** | Isolation Forest | Identified non-conforming reviews and extreme sentiment discrepancies | **Contamination Rate = 5%** |
@@ -142,15 +148,15 @@ Products are dynamically classified into tiers based on interquartile score dist
 
 ## 📊 6. Key Findings & Insights
 
-1. **Top Critical Products:** Samsung Crystal UHD TV ($\text{Score: } 0.450$), Samsung Washing Machine ($0.384$), and Samsung Air Conditioner ($0.346$) exhibited the highest risk due to strong issue density and rising temporal regret.
+1. **Top Critical Products:** Samsung Crystal UHD TV (Score: 0.450), Samsung Washing Machine (Score: 0.384), and Samsung Air Conditioner (Score: 0.346) exhibited the highest risk due to strong issue density and rising temporal regret.
 2. **Defect Severity Hierarchy:** Defect categories with the highest average regret impact:
-   * **Camera:** Mean RSI = $0.573$
-   * **General Issues:** Mean RSI = $0.564$
-   * **Battery:** Mean RSI = $0.556$
-   * **Display:** Mean RSI = $0.539$
-   * **Performance:** Mean RSI = $0.525$
-3. **Feature Impact:** Model coefficients revealed that sentiment polarity ($\text{Weight} = -9.88$) had approximately **$3.1\times$ higher influence** on high-risk prediction than numerical star ratings ($\text{Weight} = -3.15$).
-4. **Platform Parity:** Overall customer dissatisfaction remained consistent across retail platforms (Amazon: Mean RSI $0.356$ vs. Flipkart: Mean RSI $0.351$).
+   * **Camera:** Mean RSI = 0.573
+   * **General Issues:** Mean RSI = 0.564
+   * **Battery:** Mean RSI = 0.556
+   * **Display:** Mean RSI = 0.539
+   * **Performance:** Mean RSI = 0.525
+3. **Feature Impact:** Model coefficients revealed that sentiment polarity (Weight = -9.88) had approximately **3.1× higher influence** on high-risk prediction than numerical star ratings (Weight = -3.15).
+4. **Platform Parity:** Overall customer dissatisfaction remained consistent across retail platforms (Amazon: Mean RSI = 0.356 vs. Flipkart: Mean RSI = 0.351).
 
 ---
 
