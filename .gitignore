@@ -1,7 +1,9 @@
 # macOS
 .DS_Store
+**/.DS_Store
 .AppleDouble
 .LSOverride
+._*
 
 # Archives
 *.zip
@@ -9,6 +11,7 @@
 
 # Python
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -19,6 +22,7 @@ ENV/
 
 # Jupyter Notebooks
 .ipynb_checkpoints/
+**/.ipynb_checkpoints/
 *-checkpoint.ipynb
 
 # IDEs

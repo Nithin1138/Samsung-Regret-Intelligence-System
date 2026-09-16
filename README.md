@@ -15,7 +15,7 @@ Standard sentiment analysis and raw star ratings often fail to capture genuine c
 * A **3-star review** may conceal a critical hardware defect (e.g., display flickering or battery degradation).
 * A **1-star review** may reflect an isolated logistics or delivery issue rather than a defect in the product itself.
 
-The **Samsung Regret Intelligence System** implements a **Star Schema Data Warehouse**, engineers a domain-specific metric called the **Regret Severity Index (RSI)**, and features a **Temporal Risk Scoring Engine** coupled with a **Power BI Executive Dashboard**. The system processes **7,236 multi-platform customer reviews** across **50 product lines**, enabling proactive defect detection and product risk prioritization.
+The **Samsung Regret Intelligence System** implements a **Star Schema Data Warehouse**, engineers a domain-specific metric called the **Regret Severity Index (RSI)**, and features a **Temporal Risk Scoring Engine** coupled with a **Power BI Executive Dashboard**. The system processes **7,236 multi-platform customer reviews across 25 Samsung product lines**, enabling proactive defect detection and product risk prioritization.
 
 ---
 
@@ -47,10 +47,10 @@ The **Samsung Regret Intelligence System** implements a **Star Schema Data Wareh
                    ▼
 ┌──────────────────────────────────────┐
 │  Regret Severity Index (RSI) Engine  │
-│  • Normalized Rating Penalty (35%)   │
-│  • Inverted Negative Polarity (35%)  │
-│  • Hardware Defect Penalty (15%)     │
-│  • Review Text Specificity (15%)     │
+│  • Negative Sentiment Polarity (40%) │
+│  • Rating Deviation Penalty (30%)    │
+│  • Hardware/Software Defect (20%)    │
+│  • Review Text Specificity (10%)     │
 └──────────────────┬───────────────────┘
                    │
                    ▼
@@ -184,12 +184,12 @@ Samsung-Regret-Intelligence-System/
 ### A. Regret Severity Index (RSI) Formula
 Standard star ratings alone hide customer dissatisfaction. RSI computes true remorse by balancing four signals:
 
-$$\text{RSI}_i = 0.35 \cdot \left(\frac{5 - \text{Rating}_i}{4}\right) + 0.35 \cdot \left(\frac{1 - \text{Compound}_i}{2}\right) + 0.15 \cdot \text{IssueSeverity}_i + 0.15 \cdot \text{Specificity}_i$$
+$$\text{RSI}_i = 0.40 \cdot \text{NegSentiment}_i + 0.30 \cdot \left(\frac{|5 - \text{Rating}_i|}{4}\right) + 0.20 \cdot \text{IssueFlag}_i + 0.10 \cdot \text{Specificity}_i$$
 
-* **Rating Penalty (35%)**: Divergence from a 5-star rating ($0.0 \rightarrow 1.0$).
-* **Sentiment Remorse (35%)**: Inverts VADER compound score into normalized dissatisfaction ($0.0 \rightarrow 1.0$).
-* **Hardware Defect Penalty (15%)**: Weighted flag when high-impact defects (display, battery) are tagged.
-* **Review Specificity (15%)**: Weight proportional to detail depth.
+* **Negative Sentiment Polarity (40%)**: Inverted negative polarity magnitude ($\max(0, -\text{Compound}_i)$ clamped to $[0, 1]$).
+* **Rating Deviation Penalty (30%)**: Normalized divergence from a 5-star rating ($|5 - \text{Rating}_i| / 4$).
+* **Hardware/Software Defect Flag (20%)**: Binary indicator tagging explicit defect categories ($\text{Issue} \neq \text{'none'}$).
+* **Review Text Specificity (10%)**: Detail depth and informativeness factor ($0.6$).
 
 ### B. Rule-Based Sentence-Level Aspect Extraction (Priority 7)
 Rather than tagging an entire review with a single label, the NLP engine breaks text into clauses across contrastive conjunctions (`but`, `however`, `although`) and evaluates sentiment per component:
